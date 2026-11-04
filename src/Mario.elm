@@ -32,6 +32,7 @@ initialState =
   , vy = 0
   , dir = Right
   , trace = []
+  , jumps = 0
   }
 
 type XDirection = Left | Right
@@ -57,6 +58,8 @@ view computer mario =
     , marioSpriteName mario
         |> image 70 70
         |> move mario.x (b + 76 + mario.y)
+    , words black ("Jumps: " ++ String.fromInt mario.jumps)
+        |> moveY (computer.screen.top - 30)
     ]
 
 marioSpriteName mario =
@@ -86,8 +89,9 @@ update computer mario =
         if keyX /= 0 then keyX * runSpeed else (mario.vx * coast)
 
     gravityApplied = mario.vy - dt * gravity
+    startingJump = mario.y == 0 && computer.keyboard.up
     vy =
-      if mario.y == 0 && computer.keyboard.up then  -- on ground, new jump starts
+      if startingJump then  -- on ground, new jump starts
         jumpPower
       else if computer.keyboard.up then  -- in air, holding jump key for long jump
         gravityApplied
@@ -110,6 +114,8 @@ update computer mario =
           else
             mario.dir  -- face direction of last movement when standing still
       , trace = addPointUnlessDuplicate (newX, newY) mario.trace
+      , jumps = if startingJump then mario.jumps + 1 else mario.jumps
+
     }
 
 addPointUnlessDuplicate point path =
